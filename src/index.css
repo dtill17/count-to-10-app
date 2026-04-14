@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  font-family:
+    'Inter', 'SF Pro Text', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont,
+    sans-serif;
+  line-height: 1.55;
+  font-weight: 400;
+  color: #17314f;
+  background:
+    radial-gradient(circle at top left, #eef4ff 0, rgba(238, 244, 255, 0) 32%),
+    radial-gradient(circle at top right, #dbeafe 0, rgba(219, 234, 254, 0) 34%),
+    linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --heading: #0f172a;
+  --muted: #52637a;
+  --border: rgba(37, 99, 235, 0.14);
+  --surface: rgba(255, 255, 255, 0.82);
+  --surface-strong: #eff5ff;
+  --panel: rgba(240, 246, 255, 0.9);
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-active: #1e40af;
+  --accent-soft: rgba(37, 99, 235, 0.28);
+  --accent-bg: rgba(37, 99, 235, 0.12);
+  --accent-bg-strong: rgba(37, 99, 235, 0.18);
+  --focus: rgba(37, 99, 235, 0.3);
+  --button-shadow: 0 12px 26px rgba(37, 99, 235, 0.22);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+h1,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-family:
+    'Inter', 'SF Pro Display', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont,
+    sans-serif;
+  font-size: clamp(2.35rem, 5vw, 4rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--heading);
+  margin-bottom: 14px;
+}
+
+#root {
+  min-height: 100svh;
+}
