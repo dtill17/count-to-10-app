@@ -24,6 +24,7 @@ function App() {
   const [selectedLanguageId, setSelectedLanguageId] = useState(languages[0].id)
   const [mode, setMode] = useState<AppMode>('learn')
   const [sessionStats, setSessionStats] = useState(initialSessionStats)
+  const [currentStreak, setCurrentStreak] = useState(0)
   const [currentQuestion, setCurrentQuestion] = useState<QuizQuestion | null>(null)
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
   const [isAnswerCorrect, setIsAnswerCorrect] = useState(false)
@@ -141,6 +142,7 @@ function App() {
       correct: previous.correct + (answeredCorrectly ? 1 : 0),
       attempted: previous.attempted + 1,
     }))
+    setCurrentStreak((previous) => (answeredCorrectly ? previous + 1 : 0))
 
     if (answeredCorrectly) {
       setRevealedWrongAnswers([])
@@ -175,6 +177,7 @@ function App() {
 
   const handleResetSession = () => {
     setSessionStats(initialSessionStats)
+    setCurrentStreak(0)
   }
 
   const accuracy =
@@ -264,6 +267,10 @@ function App() {
               <div className="quiz-score">
                 <span className="quiz-score-label">Accuracy</span>
                 <strong>{accuracy}%</strong>
+              </div>
+              <div className="quiz-score quiz-score--streak" aria-live="polite">
+                <span className="quiz-score-label">Streak</span>
+                <strong>🔥 {currentStreak}</strong>
               </div>
               <button
                 type="button"
