@@ -20,6 +20,7 @@ const initialSessionStats: SessionStats = {
 }
 
 function App() {
+  const autoAdvanceDelayMs = 600
   const [selectedLanguageId, setSelectedLanguageId] = useState(languages[0].id)
   const [mode, setMode] = useState<AppMode>('learn')
   const [sessionStats, setSessionStats] = useState(initialSessionStats)
@@ -28,7 +29,9 @@ function App() {
   const [isAnswerCorrect, setIsAnswerCorrect] = useState(false)
   const [revealedWrongAnswers, setRevealedWrongAnswers] = useState<number[]>([])
   const [isQuestionLoading, setIsQuestionLoading] = useState(false)
+  const [isAutoAdvancing, setIsAutoAdvancing] = useState(false)
   const answerLockRef = useRef(false)
+  const autoAdvanceTimeoutRef = useRef<number | null>(null)
 
   const selectedLanguage =
     languages.find((language) => language.id === selectedLanguageId) ?? languages[0]
@@ -47,7 +50,24 @@ function App() {
 
   const hasAudio = hasAudioForLanguage(selectedLanguage.id)
 
+  const clearAutoAdvanceTimeout = useCallback(() => {
+    if (autoAdvanceTimeoutRef.current === null) {
+      return
+    }
+
+    window.clearTimeout(autoAdvanceTimeoutRef.current)
+    autoAdvanceTimeoutRef.current = null
+  }, [])
+
+  const cancelAutoAdvance = useCallback(() => {
+    clearAutoAdvanceTimeout()
+    answerLockRef.current = false
+    setIsAutoAdvancing(false)
+  }, [clearAutoAdvanceTimeout])
+
   const loadQuizQuestion = useCallback((language = selectedLanguage) => {
+    cancelAutoAdvance()
+
     if (!hasAudioForLanguage(language.id)) {
       setCurrentQuestion(null)
       setSelectedAnswer(null)
@@ -65,7 +85,9 @@ function App() {
     window.setTimeout(() => {
       setIsQuestionLoading(false)
     }, 0)
-  }, [selectedLanguage])
+  }, [cancelAutoAdvance, selectedLanguage])
+
+  useEffect(() => clearAutoAdvanceTimeout, [clearAutoAdvanceTimeout])
 
   useEffect(() => {
     if (mode !== 'quiz' || !currentQuestion || !hasAudio) {
@@ -76,6 +98,7 @@ function App() {
   }, [currentQuestion, hasAudio, mode, playNumeral])
 
   const handleLanguageChange = (languageId: string) => {
+    cancelAutoAdvance()
     stop()
     setSelectedLanguageId(languageId)
 
@@ -91,6 +114,7 @@ function App() {
       return
     }
 
+    cancelAutoAdvance()
     stop()
     setMode(nextMode)
 
@@ -100,11 +124,14 @@ function App() {
   }
 
   const handleAnswerSelect = (numeral: number) => {
-    if (!currentQuestion || answerLockRef.current || isQuestionLoading) {
+    if (
+      !currentQuestion ||
+      answerLockRef.current ||
+      isQuestionLoading ||
+      isAutoAdvancing
+    ) {
       return
     }
-
-    answerLockRef.current = true
 
     const answeredCorrectly = numeral === currentQuestion.prompt.numeral
 
@@ -117,28 +144,24 @@ function App() {
 
     if (answeredCorrectly) {
       setRevealedWrongAnswers([])
-    } else {
-      setRevealedWrongAnswers((previous) =>
-        previous.includes(numeral) ? previous : [...previous, numeral],
-      )
-    }
-
-    window.setTimeout(() => {
-      answerLockRef.current = false
-    }, 120)
-  }
-
-  const handleNextQuestion = () => {
-    if (!isAnswerCorrect || isQuestionLoading) {
+      answerLockRef.current = true
+      setIsAutoAdvancing(true)
+      clearAutoAdvanceTimeout()
+      autoAdvanceTimeoutRef.current = window.setTimeout(() => {
+        autoAdvanceTimeoutRef.current = null
+        stop()
+        loadQuizQuestion()
+      }, autoAdvanceDelayMs)
       return
     }
 
-    stop()
-    loadQuizQuestion()
+    setRevealedWrongAnswers((previous) =>
+      previous.includes(numeral) ? previous : [...previous, numeral],
+    )
   }
 
   const handleReplayAudio = () => {
-    if (!currentQuestion || isQuestionLoading || !hasAudio) {
+    if (!currentQuestion || isQuestionLoading || isAutoAdvancing || !hasAudio) {
       return
     }
 
@@ -273,7 +296,7 @@ function App() {
                       type="button"
                       className="control-button"
                       onClick={handleReplayAudio}
-                      disabled={isQuestionLoading || !hasAudio}
+                      disabled={isQuestionLoading || isAutoAdvancing || !hasAudio}
                     >
                       Replay Audio
                     </button>
@@ -312,16 +335,6 @@ function App() {
                   })}
                 </div>
 
-                <div className="quiz-actions">
-                  <button
-                    type="button"
-                    className="control-button control-button-primary"
-                    onClick={handleNextQuestion}
-                    disabled={!isAnswerCorrect || isQuestionLoading}
-                  >
-                    Next Question
-                  </button>
-                </div>
               </>
             )}
           </section>
