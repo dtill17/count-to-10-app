@@ -161,7 +161,7 @@ function App() {
 
   return (
     <main className="app-shell">
-      <section className="app-card">
+      <section className={`app-card app-card--${mode}`}>
         <header className="hero-section">
           <p className="eyebrow">Language practice</p>
           <h1>Count to 10</h1>
@@ -172,37 +172,39 @@ function App() {
           </p>
         </header>
 
-        <div className="mode-toggle" role="tablist" aria-label="Mode selection">
-          <button
-            type="button"
-            className={`mode-toggle-button${mode === 'learn' ? ' is-selected' : ''}`}
-            onClick={() => handleModeChange('learn')}
-            aria-pressed={mode === 'learn'}
-          >
-            Learn Mode
-          </button>
-          <button
-            type="button"
-            className={`mode-toggle-button${mode === 'quiz' ? ' is-selected' : ''}`}
-            onClick={() => handleModeChange('quiz')}
-            aria-pressed={mode === 'quiz'}
-          >
-            Quiz Mode
-          </button>
+        <div className="app-controls">
+          <div className="mode-toggle" role="tablist" aria-label="Mode selection">
+            <button
+              type="button"
+              className={`mode-toggle-button${mode === 'learn' ? ' is-selected' : ''}`}
+              onClick={() => handleModeChange('learn')}
+              aria-pressed={mode === 'learn'}
+            >
+              Learn Mode
+            </button>
+            <button
+              type="button"
+              className={`mode-toggle-button${mode === 'quiz' ? ' is-selected' : ''}`}
+              onClick={() => handleModeChange('quiz')}
+              aria-pressed={mode === 'quiz'}
+            >
+              Quiz Mode
+            </button>
+          </div>
+
+          <LanguageSelector
+            languages={languages}
+            selectedLanguageId={selectedLanguage.id}
+            onSelect={handleLanguageChange}
+          />
+
+          <p className="selected-language-label">
+            {selectedLanguage.flag} {selectedLanguage.name}
+          </p>
         </div>
 
-        <LanguageSelector
-          languages={languages}
-          selectedLanguageId={selectedLanguage.id}
-          onSelect={handleLanguageChange}
-        />
-
-        <p className="selected-language-label">
-          {selectedLanguage.flag} {selectedLanguage.name}
-        </p>
-
         {mode === 'learn' ? (
-          <>
+          <section className="learn-panel">
             <PlaybackControls
               canPlayAll={hasAudio}
               isPlaying={isPlaying}
@@ -224,7 +226,7 @@ function App() {
                 />
               ))}
             </ol>
-          </>
+          </section>
         ) : (
           <section className="quiz-panel" aria-live="polite">
             <div className="quiz-scoreboard">
@@ -257,12 +259,25 @@ function App() {
               </p>
             ) : (
               <>
-                <div className="quiz-prompt">
-                  <p className="quiz-prompt-label">Current language</p>
-                  <p className="quiz-prompt-value">{selectedLanguage.name}</p>
-                  <p className="quiz-instruction">
-                    Listen to the audio and choose the matching number.
-                  </p>
+                <div className="quiz-meta">
+                  <div className="quiz-prompt">
+                    <p className="quiz-prompt-label">Current language</p>
+                    <p className="quiz-prompt-value">{selectedLanguage.name}</p>
+                    <p className="quiz-instruction">
+                      Listen to the audio and choose the matching number.
+                    </p>
+                  </div>
+
+                  <div className="quiz-toolbar">
+                    <button
+                      type="button"
+                      className="control-button"
+                      onClick={handleReplayAudio}
+                      disabled={isQuestionLoading || !hasAudio}
+                    >
+                      Replay Audio
+                    </button>
+                  </div>
                 </div>
 
                 <div className="quiz-options" role="list">
@@ -298,14 +313,6 @@ function App() {
                 </div>
 
                 <div className="quiz-actions">
-                  <button
-                    type="button"
-                    className="control-button"
-                    onClick={handleReplayAudio}
-                    disabled={isQuestionLoading || !hasAudio}
-                  >
-                    Replay Audio
-                  </button>
                   <button
                     type="button"
                     className="control-button control-button-primary"
